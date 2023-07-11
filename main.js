@@ -1,5 +1,5 @@
-var app = require("app"),
-		BrowserWindow = require("browser-window");
+const { app, BrowserWindow } = require('electron');
+const { ipcMain } = require('electron');
 
 
 app.on("window-all-closed", function() {
@@ -8,8 +8,8 @@ app.on("window-all-closed", function() {
 
 var mainWindow = null;
 var resultWindow = null;
-var dialog = require("dialog");
-var ipc = require("ipc");
+const { dialog } = require('electron');
+
 
 app.on("ready", function() {
 	mainWindow = new BrowserWindow({
@@ -18,21 +18,27 @@ app.on("ready", function() {
 		center: true,
 		resizable: false,
 		frame: true,
+		nodeIntegration: true,
+		contextIsolation: false, // Also important for the preload script to have effect.
+		enableRemoteModule: true, // If you're using the `remote` module.
 	});
 
 	mainWindow.setMenu(null);
-	var homepageUrl = "file://" + __dirname + "/index.html";
-	mainWindow.loadUrl(homepageUrl);
-	//mainWindow.openDevTools();
+	var homepageUrl = `file://${__dirname}/index.html`;
+	mainWindow.loadURL(homepageUrl);
+	mainWindow.openDevTools();
 
 
-	ipc.on("sameField", function(evt, args) {
+	ipcMain.on("sameField", function(evt, args) {
 
 		if (!resultWindow) {
 			resultWindow = new BrowserWindow({
 				width: 1050,
 				height: 600,
 				resizable: false,
+				nodeIntegration: true,
+				contextIsolation: false, // Also important for the preload script to have effect.
+				enableRemoteModule: true, // If you're using the `remote` module.
 			});
 		}
 
@@ -53,23 +59,23 @@ app.on("ready", function() {
 		});
 	});
 
-	ipc.on("compareRequest", function(evt, args) {
+	ipcMain.on("compareRequest", function(evt, args) {
 		mainWindow.webContents.send("compareRequest", {
 			data: args.data
 		});
 	});
 
-	ipc.on("buildHash", function(evt, args) {
+	ipcMain.on("buildHash", function(evt, args) {
 		console.log("buildHash " + args.data);
 	});
 
-	ipc.on("compareAction", function(evt, args) {
+	ipcMain.on("compareAction", function(evt, args) {
 		resultWindow.webContents.send("progress", {
 			data: args.data
 		});
 	});
 
-	ipc.on("exportImage", function(evt, args) {
+	ipcMain.on("exportImage", function(evt, args) {
 		resultWindow.capturePage(function(image){
 			var fs = require("fs");
 
@@ -90,7 +96,7 @@ app.on("ready", function() {
 		});
 	});
 
-	ipc.on("diffRecords", function(evt, args) {
+	ipcMain.on("diffRecords", function(evt, args) {
 		var diffRecords = args.data;
 		var targetFields = args.fields;
 

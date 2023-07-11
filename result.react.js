@@ -1,7 +1,8 @@
-var ipc = require("ipc");
-var xlsx = require("xlsx");
-var fs = require("fs");
-var iconv = require("iconv-lite");
+const { ipcRenderer } = require('electron');
+const xlsx = require('xlsx');
+const fs = require('fs');
+const iconv = require('iconv-lite');
+
 
 var App = React.createClass({
   getInitialState: function() {
@@ -17,18 +18,18 @@ var App = React.createClass({
   componentDidMount: function() {
     var data = null;
 
-    ipc.on("sameField", function(args) {
+    ipcRenderer.on("sameField", function(args) {
       this.setState({sameFields: args.data});
     }.bind(this));
 
-    ipc.on("diffRecords", function(args) {
+    ipcRenderer.on("diffRecords", function(args) {
       console.log("diffRecords received from resultWindow");
       // console.log(JSON.stringify(args));
       this.setState({diffRecords: args.data, targetFields: args.fields});
       // console.log(args.data);
     }.bind(this));
 
-    ipc.on("progress", function(args) {
+    ipcRenderer.on("progress", function(args) {
       this.setState({progressBarStyle: {width: args.data}});
     }.bind(this));
 
@@ -51,7 +52,7 @@ var App = React.createClass({
 
   sendCompareRequest: function() {
     // console.log(this.state.targetFields);
-    ipc.send("compareRequest", {
+    ipcRenderer.send("compareRequest", {
       data: this.state.targetFields
     });
   },
@@ -88,7 +89,7 @@ var App = React.createClass({
     link.setAttribute('download', filename);
     link.click();
 
-    ipc.send("exportImage", {});
+    ipcRenderer.send("exportImage", {});
 
   },
 
